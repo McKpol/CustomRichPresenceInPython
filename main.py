@@ -7,6 +7,8 @@ from pypresence import Presence
 import sys
 import os
 import getpass
+import winshell
+from win32com.client import Dispatch
 
 USER_NAME = getpass.getuser()
 
@@ -15,18 +17,26 @@ def add_to_startup(file_path=""):
     if file_path == "":
         file_path = os.path.dirname(os.path.realpath(__file__))
     bat_path = r'C:\Users\%s\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup' % USER_NAME
-    with open(bat_path + '\\' + "CRPD.bat", "w+") as bat_file:
-        bat_file.write(r'start "" "%s"' % file_path)
+    path = f"{bat_path}\CRPD.lnk" # Path to be saved (shortcut)
+    target = f"{file_path}\Custom Rich Presence Discord.exe"  # The shortcut target file or folder
+    work_dir = f"{file_path}"  # The parent folder of your file
+
+    shell = Dispatch('WScript.Shell')
+    shortcut = shell.CreateShortCut(path)
+    shortcut.Targetpath = target
+    shortcut.WorkingDirectory = work_dir
+    shortcut.save()
 
 def delete_to_startup():
     print("Czekanie na usunięcie")
     bat_path = r'C:\Users\%s\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup' % USER_NAME
-    path = (bat_path + '\\' + "CRPD.bat")
+    path = (bat_path + r'\\' + r"CRPD.lnk")
     if os.path.exists(path):
         os.remove(path)
         print("Plik został usunięty.")
     else:
         print("Plik nie istnieje.")
+    print(f"{bat_path}\\CRPD.ink")
 
 def getsaveline(line):
     try:
@@ -128,6 +138,7 @@ class Settings(customtkinter.CTkToplevel):
         self.checkboxstartup = customtkinter.CTkCheckBox(self, text="Run on startup Windows", variable=customtkinter.StringVar(value=startup), onvalue="True", offvalue="False")
         self.checkboxstartup.grid(row=1, column=1, padx=0, pady=5)
         self.checkboxminimalize = customtkinter.CTkCheckBox(self, text="On startup run on minimalize", variable=customtkinter.StringVar(value=minimalize), onvalue="True", offvalue="False")
+        self.checkboxminimalize.configure(state="disabled")
         self.checkboxminimalize.grid(row=2, column=1, padx=0, pady=5)
         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self, values=["light", "dark", "system"],command=self.change_appearance_mode_event)
         self.appearance_mode_optionemenu.set(apperancemode)
