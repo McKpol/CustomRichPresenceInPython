@@ -6,6 +6,27 @@ import time
 from pypresence import Presence
 import sys
 import os
+import getpass
+
+USER_NAME = getpass.getuser()
+
+def add_to_startup(file_path=""):
+    print("Utworzono")
+    if file_path == "":
+        file_path = os.path.dirname(os.path.realpath(__file__))
+    bat_path = r'C:\Users\%s\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup' % USER_NAME
+    with open(bat_path + '\\' + "CRPD.bat", "w+") as bat_file:
+        bat_file.write(r'start "" "%s"' % file_path)
+
+def delete_to_startup():
+    print("Czekanie na usunięcie")
+    bat_path = r'C:\Users\%s\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup' % USER_NAME
+    path = (bat_path + '\\' + "CRPD.bat")
+    if os.path.exists(path):
+        os.remove(path)
+        print("Plik został usunięty.")
+    else:
+        print("Plik nie istnieje.")
 
 def getsaveline(line):
     try:
@@ -59,15 +80,91 @@ def updateRPC():
         print(f"Złe ustawienie: {e}")
         return
 
+class Settings(customtkinter.CTkToplevel):
+    def __init__(self):
+        super().__init__()
+        self.geometry("400x300")
+        self.grid_columnconfigure(1, weight=1)
+        self.title("Settings")
+
+        def getsettingsline(line):
+            try:
+                with open('settings', 'r') as file:
+                    lines = file.readlines()
+
+                line_number = line
+                if line_number <= len(lines):
+                   selected_line = lines[line_number - 1]
+                   return(selected_line.strip())
+                file.close()
+            except FileNotFoundError: print("Plik nie znaleziony")
+
+        startup = getsettingsline(1)
+        minimalize = getsettingsline(2)
+        apperancemode = getsettingsline(3)
+        if getsettingsline(1) == None:
+            startup = False
+        if getsettingsline(2) == None:
+            minimalize = False
+        if getsettingsline(3) == None:
+            apperancemode = "dark"
+
+        print(getsettingsline(1))
+
+        def savesettings():
+            print("Zapisano ustawienia")
+            if self.checkboxstartup.get() == "True":
+                add_to_startup()
+            else: 
+                delete_to_startup()
+            startup = self.checkboxstartup.get()
+            minimalize = self.checkboxminimalize.get()
+            appearancemode = self.appearance_mode_optionemenu.get()
+            with open('settings', 'w')  as file:
+                file.write(f"{startup}\n{minimalize}\n{appearancemode}")
+                file.close()
+        self.label = customtkinter.CTkLabel(self, text="Setting", font=customtkinter.CTkFont(family="Arial", size=20, weight="bold"))
+        self.label.grid(row=0, column=1, padx=0, pady=10)
+        self.checkboxstartup = customtkinter.CTkCheckBox(self, text="Run on startup Windows", variable=customtkinter.StringVar(value=startup), onvalue="True", offvalue="False")
+        self.checkboxstartup.grid(row=1, column=1, padx=0, pady=5)
+        self.checkboxminimalize = customtkinter.CTkCheckBox(self, text="On startup run on minimalize", variable=customtkinter.StringVar(value=minimalize), onvalue="True", offvalue="False")
+        self.checkboxminimalize.grid(row=2, column=1, padx=0, pady=5)
+        self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self, values=["light", "dark", "system"],command=self.change_appearance_mode_event)
+        self.appearance_mode_optionemenu.set(apperancemode)
+        self.appearance_mode_optionemenu.grid(row=3, column=1, padx=0, pady=5)
+        self.buttonsave = customtkinter.CTkButton(self, text="Save", command=savesettings)
+        self.buttonsave.grid(row=4, column=1, padx=0, pady=5)
+    def change_appearance_mode_event(self, new_appearance_mode: str):
+        customtkinter.set_appearance_mode(new_appearance_mode)
+
+
+
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
+
+        def getsettingsline(line):
+            try:
+                with open('settings', 'r') as file:
+                    lines = file.readlines()
+
+                line_number = line
+                if line_number <= len(lines):
+                   selected_line = lines[line_number - 1]
+                   return(selected_line.strip())
+                file.close()
+            except FileNotFoundError: print("Plik nie znaleziony")
+        if getsettingsline(3) == None:
+            apperancemode = "dark"
+        apperancemode = getsettingsline(3)
+        print(getsettingsline(3))
         self.iconbitmap("icon.ico")
         self.title("Custom Rich Presence by McKpl")
         self.geometry(f"{1020}x{310}")
         self.minsize(1020, 310)
         self.maxsize(1020, 310)
         self.grid_columnconfigure((0, 6), weight=1)
+        self._set_appearance_mode(apperancemode)
 
         self.labelMenuText = customtkinter.CTkLabel(self, text="Custom Rich Presence Discord", font=customtkinter.CTkFont(family="Arial", size=35, weight="bold"))
         self.labelMenuText.grid(row=0, column=1, padx=0, pady=0, sticky="ew", columnspan=6)
@@ -179,8 +276,17 @@ class App(customtkinter.CTk):
         self.buttonstart = customtkinter.CTkButton(self, text="Hide", command=self.hide)
         self.buttonstart.grid(row=4, column=1, pady=2, padx=(10, 1), sticky="ew", columnspan=3)
 
-        self.buttonstart = customtkinter.CTkButton(self, text="Settings", command=self.hide)
+        self.buttonstart = customtkinter.CTkButton(self, text="Settings", command=self.open_settings)
         self.buttonstart.grid(row=4, column=4, pady=2, padx=(1, 10), sticky="ew", columnspan=3)
+
+        self.toplevel_window = None
+
+    def open_settings(self):
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = Settings()  # create window if its None or destroyed
+        else:
+            self.toplevel_window.focus()  # if window exists focus it
+        self.toplevel_window.focus()  # if window exists focus it
 
     def saveRPC(self):
 
