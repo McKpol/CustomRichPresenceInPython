@@ -90,36 +90,35 @@ def updateRPC():
         print(f"Złe ustawienie: {e}")
         return
 
+def getsettingsline(line):
+    try:
+        with open('settings', 'r') as file:
+            lines = file.readlines()
+
+        line_number = line
+        if line_number <= len(lines):
+           selected_line = lines[line_number - 1]
+           return(selected_line.strip())
+        file.close()
+    except FileNotFoundError: print("Plik nie znaleziony")
+
+startup = getsettingsline(1)
+minimalize = getsettingsline(2)
+apperancemode = getsettingsline(3)
+
+if getsettingsline(1) == None:
+    startup = "False"
+if getsettingsline(2) == None:
+    minimalize = "False"
+if getsettingsline(3) == None:
+    apperancemode = "dark"
+
 class Settings(customtkinter.CTkToplevel):
     def __init__(self):
         super().__init__()
         self.geometry("400x300")
         self.grid_columnconfigure(1, weight=1)
         self.title("Settings")
-
-        def getsettingsline(line):
-            try:
-                with open('settings', 'r') as file:
-                    lines = file.readlines()
-
-                line_number = line
-                if line_number <= len(lines):
-                   selected_line = lines[line_number - 1]
-                   return(selected_line.strip())
-                file.close()
-            except FileNotFoundError: print("Plik nie znaleziony")
-
-        startup = getsettingsline(1)
-        minimalize = getsettingsline(2)
-        apperancemode = getsettingsline(3)
-        if getsettingsline(1) == None:
-            startup = False
-        if getsettingsline(2) == None:
-            minimalize = False
-        if getsettingsline(3) == None:
-            apperancemode = "dark"
-
-        print(getsettingsline(1))
 
         def savesettings():
             print("Zapisano ustawienia")
@@ -137,8 +136,7 @@ class Settings(customtkinter.CTkToplevel):
         self.label.grid(row=0, column=1, padx=0, pady=10)
         self.checkboxstartup = customtkinter.CTkCheckBox(self, text="Run on startup Windows", variable=customtkinter.StringVar(value=startup), onvalue="True", offvalue="False")
         self.checkboxstartup.grid(row=1, column=1, padx=0, pady=5)
-        self.checkboxminimalize = customtkinter.CTkCheckBox(self, text="On startup run on minimalize", variable=customtkinter.StringVar(value=minimalize), onvalue="True", offvalue="False")
-        self.checkboxminimalize.configure(state="disabled")
+        self.checkboxminimalize = customtkinter.CTkCheckBox(self, text="Start program minimalize", variable=customtkinter.StringVar(value=minimalize), onvalue="True", offvalue="False")
         self.checkboxminimalize.grid(row=2, column=1, padx=0, pady=5)
         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self, values=["light", "dark", "system"],command=self.change_appearance_mode_event)
         self.appearance_mode_optionemenu.set(apperancemode)
@@ -289,6 +287,9 @@ class App(customtkinter.CTk):
 
         self.buttonstart = customtkinter.CTkButton(self, text="Settings", command=self.open_settings)
         self.buttonstart.grid(row=4, column=4, pady=2, padx=(1, 10), sticky="ew", columnspan=3)
+
+        if minimalize == "True":
+            self.hide()
 
         self.toplevel_window = None
 
