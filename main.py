@@ -1,0 +1,257 @@
+import customtkinter
+import threading
+import pystray
+import PIL.Image
+import time
+from pypresence import Presence
+import sys
+import os
+
+def getsaveline(line):
+    try:
+        with open('save', 'r') as file:
+            lines = file.readlines()
+
+        line_number = line
+        if line_number <= len(lines):
+            selected_line = lines[line_number - 1]
+            return(selected_line.strip())
+        file.close()
+    except FileNotFoundError: print("Plik nie znaleziony")
+
+AppID = getsaveline(1)
+Details = getsaveline(2)
+State = getsaveline(3)
+LargeImageLink = getsaveline(4)
+LargeImageDescription = getsaveline(5)
+SmallImageLink = getsaveline(6)
+SmallImageDescription = getsaveline(7)
+PartyShow = getsaveline(8)
+PartyNumber = getsaveline(9)
+PartySlots = getsaveline(10)
+Button1Name = getsaveline(11)
+Button1Link = getsaveline(12)
+Button2Name = getsaveline(13)
+Button2Link = getsaveline(14)
+
+def updateRPC():
+    print("Uruchamianie....")
+    RPC = Presence(int(AppID))
+    try: RPC.connect()
+    except Exception as e: 
+        print(f"Złe AppID: {e}")
+        return 
+    timestamp = int(time.time())
+    try:
+            RPC.update(
+            state=State,
+            details=Details,
+            large_image=LargeImageLink,
+            large_text=LargeImageDescription,
+            small_image=SmallImageLink,
+            small_text=SmallImageDescription,
+            start=timestamp,
+            party_size=[int(PartyNumber),int(PartySlots)],
+            buttons=[{"label": Button1Name, "url": Button1Link},{"label": Button2Name, "url": Button2Link}]
+            )
+            print("Refresh")
+    except Exception as e:
+        print(f"Złe ustawienie: {e}")
+        return
+
+class App(customtkinter.CTk):
+    def __init__(self):
+        super().__init__()
+        self.iconbitmap("icon.ico")
+        self.title("Custom Rich Presence by McKpl")
+        self.geometry(f"{1020}x{310}")
+        self.minsize(1020, 310)
+        self.maxsize(1020, 310)
+        self.grid_columnconfigure((0, 6), weight=1)
+
+        self.labelMenuText = customtkinter.CTkLabel(self, text="Custom Rich Presence Discord", font=customtkinter.CTkFont(family="Arial", size=35, weight="bold"))
+        self.labelMenuText.grid(row=0, column=1, padx=0, pady=0, sticky="ew", columnspan=6)
+
+        self.botFrame = customtkinter.CTkFrame(self)
+        self.botFrame.grid(row=1, column=1, padx=10, pady=0, sticky="nsw", columnspan=6)
+
+        self.textapp = customtkinter.CTkLabel(self.botFrame, text="APP ID", font=customtkinter.CTkFont(family="Arial", size=15, weight="bold"))
+        self.textapp.grid(row=0, column=0, padx=10, pady=2)
+
+        self.entryapp = customtkinter.CTkEntry(self.botFrame, placeholder_text="APP_ID", width=200)
+        self.entryapp.insert(0, AppID)
+        self.entryapp.grid(row=0, column=1, padx=2, pady=2)
+
+        self.info_frame = customtkinter.CTkFrame(self)
+        self.info_frame.grid(row=2, column=1, padx=10, pady=10, sticky="nsw")
+
+        self.labeltext = customtkinter.CTkLabel(self.info_frame, text="Text", font=customtkinter.CTkFont(family="Arial", size=20, weight="bold"))
+        self.labeltext.grid(row=0, column=0, padx=5, pady=5, sticky="we")
+
+        self.entrydetails = customtkinter.CTkEntry(self.info_frame, placeholder_text="Details")
+        self.entrydetails.insert(0, Details)
+        self.entrydetails.grid(row=1, column=0, padx=5, pady=5)
+        
+        self.entrystate = customtkinter.CTkEntry(self.info_frame, placeholder_text="State")
+        self.entrystate.insert(0, State)
+        self.entrystate.grid(row=2, column=0, padx=5, pady=5)
+
+        self.large_image = customtkinter.CTkFrame(self)
+        self.large_image.grid(row=2, column=2 , padx=10, pady=10, sticky="nsw")
+
+        self.labelLargeImage = customtkinter.CTkLabel(self.large_image, text="Large Image", font=customtkinter.CTkFont(family="Arial", size=20, weight="bold"))
+        self.labelLargeImage.grid(row=0, column=0, padx=5, pady=5, sticky="we")
+
+        self.entryLinkLargeImage = customtkinter.CTkEntry(self.large_image, placeholder_text="Link")
+        self.entryLinkLargeImage.insert(0, LargeImageLink)
+        self.entryLinkLargeImage.grid(row=1, column=0, padx=5, pady=5)
+        
+        self.entryDescriptionLargeImage = customtkinter.CTkEntry(self.large_image, placeholder_text="Description")
+        self.entryDescriptionLargeImage.insert(0, LargeImageDescription)
+        self.entryDescriptionLargeImage.grid(row=2, column=0, padx=5, pady=5)
+
+        self.small_image = customtkinter.CTkFrame(self)
+        self.small_image.grid(row=2, column=3 , padx=10, pady=10, sticky="nsw")
+
+        self.labelSmallIlamge = customtkinter.CTkLabel(self.small_image, text="Small Image", font=customtkinter.CTkFont(family="Arial", size=20, weight="bold"))
+        self.labelSmallIlamge.grid(row=0, column=0, padx=5, pady=5, sticky="we")
+
+        self.entryLinkSmallImage = customtkinter.CTkEntry(self.small_image, placeholder_text="Link")
+        self.entryLinkSmallImage.insert(0, SmallImageLink)
+        self.entryLinkSmallImage.grid(row=1, column=0, padx=5, pady=5)
+        
+        self.entryDescriptionSmallImage = customtkinter.CTkEntry(self.small_image, placeholder_text="Description")
+        self.entryDescriptionSmallImage.insert(0, SmallImageDescription)
+        self.entryDescriptionSmallImage.grid(row=2, column=0, padx=5, pady=5)
+
+        self.party = customtkinter.CTkFrame(self)
+        self.party.grid(row=2, column=4, padx=10, pady=10, sticky="nsw")
+
+        self.labelParty = customtkinter.CTkLabel(self.party, text="Party", font=customtkinter.CTkFont(family="Arial", size=20, weight="bold"))
+        self.labelParty.grid(row=0, column=0, padx=5, pady=5, sticky="we")
+
+        self.switch_var = customtkinter.StringVar(value=PartyShow)
+        self.switchParty = customtkinter.CTkSwitch(self.party, text="Show", variable=self.switch_var, onvalue="True", offvalue="False")
+        self.switchParty.grid(row=1, column=0, padx=5, pady=5)
+        
+        self.entryPeople = customtkinter.CTkEntry(self.party, placeholder_text="Number of people")
+        self.entryPeople.insert(0, PartyNumber)
+        self.entryPeople.grid(row=2, column=0, padx=5, pady=5)
+        
+        self.entrySlots = customtkinter.CTkEntry(self.party, placeholder_text="Number of slots")
+        self.entrySlots.insert(0, PartySlots)
+        self.entrySlots.grid(row=3, column=0, padx=5, pady=5)
+
+        self.Button1 = customtkinter.CTkFrame(self)
+        self.Button1.grid(row=2, column=5, padx=10, pady=10, sticky="nsw")
+
+        self.labelButton1 = customtkinter.CTkLabel(self.Button1, text="Button 1", font=customtkinter.CTkFont(family="Arial", size=20, weight="bold"))
+        self.labelButton1.grid(row=1, column=0, sticky="we")
+
+        self.entryname1 = customtkinter.CTkEntry(self.Button1, placeholder_text="Entry Name")
+        self.entryname1.insert(0, Button1Name)
+        self.entryname1.grid(row=2, column=0, padx=5, pady=5)
+
+        self.entrylink1 = customtkinter.CTkEntry(self.Button1, placeholder_text="Entry Link")
+        self.entrylink1.insert(0, Button1Link)
+        self.entrylink1.grid(row=3, column=0, padx=5, pady=5)
+
+        self.Button2 = customtkinter.CTkFrame(self)
+        self.Button2.grid(row=2, column=6, padx=10, pady=10, sticky="nsw")
+
+        self.labelButton2 = customtkinter.CTkLabel(self.Button2, text="Button 2", font=customtkinter.CTkFont(family="Arial", size=20, weight="bold"))
+        self.labelButton2.grid(row=1, column=0, sticky="we")
+
+        self.entryname2 = customtkinter.CTkEntry(self.Button2, placeholder_text="Entry Name")
+        self.entryname2.insert(0, Button2Name)
+        self.entryname2.grid(row=2, column=0, padx=5, pady=5)
+
+        self.entrylink2 = customtkinter.CTkEntry(self.Button2, placeholder_text="Entry Link")
+        self.entrylink2.insert(0, Button2Link)
+        self.entrylink2.grid(row=3, column=0, padx=5, pady=5)
+
+        self.buttonstart = customtkinter.CTkButton(self, text="Update", command=self.openRPC)
+        self.buttonstart.grid(row=3, column=1, pady=2, padx=(10, 1), sticky="ew", columnspan=3)
+
+        self.buttonstart = customtkinter.CTkButton(self, text="Save", command=self.saveRPC)
+        self.buttonstart.grid(row=3, column=4, pady=2, padx=(1, 10), sticky="ew", columnspan=3)
+
+        self.buttonstart = customtkinter.CTkButton(self, text="Hide", command=self.hide)
+        self.buttonstart.grid(row=4, column=1, pady=2, padx=(10, 1), sticky="ew", columnspan=3)
+
+        self.buttonstart = customtkinter.CTkButton(self, text="Settings", command=self.hide)
+        self.buttonstart.grid(row=4, column=4, pady=2, padx=(1, 10), sticky="ew", columnspan=3)
+
+    def saveRPC(self):
+
+        print("Zapiswyanie Pliku")
+        AppID = self.entryapp.get()
+        Details = self.entrydetails.get()
+        State = self.entrystate.get()
+        LargeImageLink = self.entryLinkLargeImage.get()
+        LargeImageDescription = self.entryDescriptionLargeImage.get()
+        SmallImageLink = self.entryLinkSmallImage.get()
+        SmallImageDescription = self.entryDescriptionSmallImage.get()
+        PartyShow = self.switchParty.get()
+        PartyNumber = self.entryPeople.get()
+        PartySlots = self.entrySlots.get()
+        Button1Name = self.entryname1.get()
+        Button1Link = self.entrylink1.get()
+        Button2Name = self.entryname2.get()
+        Button2Link = self.entrylink2.get()
+
+        with open('save', 'w')  as file:
+            file.write(f"{AppID}\n{Details}\n{State}\n{LargeImageLink}\n{LargeImageDescription}\n{SmallImageLink}\n{SmallImageDescription}\n{PartyShow}\n{PartyNumber}\n{PartySlots}\n{Button1Name}\n{Button1Link}\n{Button2Name}\n{Button2Link}")
+            file.close()
+        print("Zapisano!")
+
+    
+    def openRPC(self):
+        print ("Zatrzymywanie RPC")
+        try: 
+            thread.join()
+        except Exception: print("Nie udało się")
+        print("Zapiswyanie Pliku")
+        AppID = self.entryapp.get()
+        Details = self.entrydetails.get()
+        State = self.entrystate.get()
+        LargeImageLink = self.entryLinkLargeImage.get()
+        LargeImageDescription = self.entryDescriptionLargeImage.get()
+        SmallImageLink = self.entryLinkSmallImage.get()
+        SmallImageDescription = self.entryDescriptionSmallImage.get()
+        PartyShow = self.switchParty.get()
+        PartyNumber = self.entryPeople.get()
+        PartySlots = self.entrySlots.get()
+        Button1Name = self.entryname1.get()
+        Button1Link = self.entrylink1.get()
+        Button2Name = self.entryname2.get()
+        Button2Link = self.entrylink2.get()
+
+        with open('save', 'w')  as file:
+            file.write(f"{AppID}\n{Details}\n{State}\n{LargeImageLink}\n{LargeImageDescription}\n{SmallImageLink}\n{SmallImageDescription}\n{PartyShow}\n{PartyNumber}\n{PartySlots}\n{Button1Name}\n{Button1Link}\n{Button2Name}\n{Button2Link}")
+            file.close()
+        print("Zapisano!")
+        print("Uruchamianie...")
+        thread = threading.Thread(target=updateRPC())
+        thread.start
+
+    def hide(self):
+        self.withdraw()
+        image = PIL.Image.open("icon.png")
+
+        def on_clicked():
+            self.deiconify()
+            icon.stop()
+        def exit():
+            icon.stop()
+            os._exit(0)
+
+        icon = pystray.Icon("Icon", image, menu=pystray.Menu(
+        pystray.MenuItem("Show", on_clicked),
+        pystray.MenuItem("Exit", exit),
+        ))
+
+        icon.run_detached()
+
+app = App()
+app.mainloop()
