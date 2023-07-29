@@ -1,6 +1,6 @@
-customtkinter
-pystray
-Pillow
-pypresence
-winshell
-pywin32
+customtkinter==5.2.0
+pystray==0.19.4
+Pillow==10.0.0
+pypresence==4.3.0
+winshell==0.6
+pywin32==306
