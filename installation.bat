@@ -9,3 +9,4 @@ pip install pystray
 pip install Pillow
 pip install pypresence
 pip install winshell
+pip install pywin32
