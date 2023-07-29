@@ -2,23 +2,28 @@ import customtkinter
 import threading
 import pystray
 import PIL.Image
-import time
 from pypresence import Presence
-import sys
 import os
 import getpass
-import winshell
 from win32com.client import Dispatch
 
 USER_NAME = getpass.getuser()
+
+if not os.path.exists("settings.txt"):
+    with open("settings.txt", 'w') as plik:
+        plik.write("False\nFalse\ndark")
+
+if not os.path.exists("save.txt"):
+    with open("save.txt", 'w') as plik:
+        plik.write("1122815026697355385\nHey, i am very cool guy!\nI like typing random thing on chat discord!\nhttps://assets.stickpng.com/images/62b2265e038aad4d3ed7ca4b.png\nDiscord Logo\nhttps://c.tenor.com/TgKK6YKNkm0AAAAi/verified-verificado.gif\nVerified\nTrue\n1\n10\nThis Custom Rich Presence\nhttps://github.com/McKpol/CustomRichPresenceInPython\nHe's YouTube\nhttps://www.youtube.com/@McKLeniwiec")
 
 def add_to_startup(file_path=""):
     print("Utworzono")
     if file_path == "":
         file_path = os.path.dirname(os.path.realpath(__file__))
     bat_path = r'C:\Users\%s\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup' % USER_NAME
-    path = f"{bat_path}\CRPD.lnk" # Path to be saved (shortcut)
-    target = f"{file_path}\Custom Rich Presence Discord.exe"  # The shortcut target file or folder
+    path = f"{bat_path}\CustomRichPresenceDiscord.lnk" # Path to be saved (shortcut)
+    target = f"{file_path}\main.exe"  # The shortcut target file or folder
     work_dir = f"{file_path}"  # The parent folder of your file
 
     shell = Dispatch('WScript.Shell')
@@ -30,7 +35,7 @@ def add_to_startup(file_path=""):
 def delete_to_startup():
     print("Czekanie na usunięcie")
     bat_path = r'C:\Users\%s\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup' % USER_NAME
-    path = (bat_path + r'\\' + r"CRPD.lnk")
+    path = (bat_path + r'\\' + r"CustomRichPresenceDiscord.lnk")
     if os.path.exists(path):
         os.remove(path)
         print("Plik został usunięty.")
@@ -40,7 +45,7 @@ def delete_to_startup():
 
 def getsaveline(line):
     try:
-        with open('save', 'r') as file:
+        with open('save.txt', 'r') as file:
             lines = file.readlines()
 
         line_number = line
@@ -67,7 +72,7 @@ Button2Link = getsaveline(14)
 
 def getsettingsline(line):
     try:
-        with open('settings', 'r') as file:
+        with open('settings.txt', 'r') as file:
             lines = file.readlines()
 
         line_number = line
@@ -104,7 +109,7 @@ class Settings(customtkinter.CTkToplevel):
             startup = self.checkboxstartup.get()
             minimalize = self.checkboxminimalize.get()
             appearancemode = self.appearance_mode_optionemenu.get()
-            with open('settings', 'w')  as file:
+            with open('settings.txt', 'w')  as file:
                 file.write(f"{startup}\n{minimalize}\n{appearancemode}")
                 file.close()
         self.label = customtkinter.CTkLabel(self, text="Setting", font=customtkinter.CTkFont(family="Arial", size=20, weight="bold"))
@@ -138,10 +143,6 @@ class App(customtkinter.CTk):
                    return(selected_line.strip())
                 file.close()
             except FileNotFoundError: print("Plik nie znaleziony")
-        if getsettingsline(3) == None:
-            apperancemode = "dark"
-        apperancemode = getsettingsline(3)
-        print(getsettingsline(3))
         self.iconbitmap("icon.ico")
         self.title("Custom Rich Presence by McKpl")
         self.geometry(f"{1020}x{310}")
@@ -293,7 +294,7 @@ class App(customtkinter.CTk):
         Button2Name = self.entryname2.get()
         Button2Link = self.entrylink2.get()
 
-        with open('save', 'w')  as file:
+        with open('save.txt', 'w')  as file:
             file.write(f"{AppID}\n{Details}\n{State}\n{LargeImageLink}\n{LargeImageDescription}\n{SmallImageLink}\n{SmallImageDescription}\n{PartyShow}\n{PartyNumber}\n{PartySlots}\n{Button1Name}\n{Button1Link}\n{Button2Name}\n{Button2Link}")
             file.close()
         print("Zapisano!")
@@ -305,7 +306,6 @@ class App(customtkinter.CTk):
         except Exception as e: 
             print(f"Złe AppID: {e}")
             return 
-        timestamp = int(time.time())
         try:
             self.RPCid.update(
             state=State,
@@ -314,7 +314,6 @@ class App(customtkinter.CTk):
             large_text=LargeImageDescription,
             small_image=SmallImageLink,
             small_text=SmallImageDescription,
-            start=timestamp,
             party_size=[int(PartyNumber),int(PartySlots)],
             buttons=[{"label": Button1Name, "url": Button1Link},{"label": Button2Name, "url": Button2Link}]
             )
@@ -354,7 +353,7 @@ class App(customtkinter.CTk):
         Button2Name = self.entryname2.get()
         Button2Link = self.entrylink2.get()
 
-        with open('save', 'w')  as file:
+        with open('save.txt', 'w')  as file:
             file.write(f"{AppID}\n{Details}\n{State}\n{LargeImageLink}\n{LargeImageDescription}\n{SmallImageLink}\n{SmallImageDescription}\n{PartyShow}\n{PartyNumber}\n{PartySlots}\n{Button1Name}\n{Button1Link}\n{Button2Name}\n{Button2Link}")
             file.close()
         print("Zapisano!")

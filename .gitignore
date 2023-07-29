@@ -1,1 +1,6 @@
 .venv
+build
+dist
+main.spec
+save.txt
+settings.txt
