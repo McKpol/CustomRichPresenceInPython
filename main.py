@@ -65,31 +65,6 @@ Button1Link = getsaveline(12)
 Button2Name = getsaveline(13)
 Button2Link = getsaveline(14)
 
-def updateRPC():
-    print("Uruchamianie....")
-    RPC = Presence(int(AppID))
-    try: RPC.connect()
-    except Exception as e: 
-        print(f"Złe AppID: {e}")
-        return 
-    timestamp = int(time.time())
-    try:
-            RPC.update(
-            state=State,
-            details=Details,
-            large_image=LargeImageLink,
-            large_text=LargeImageDescription,
-            small_image=SmallImageLink,
-            small_text=SmallImageDescription,
-            start=timestamp,
-            party_size=[int(PartyNumber),int(PartySlots)],
-            buttons=[{"label": Button1Name, "url": Button1Link},{"label": Button2Name, "url": Button2Link}]
-            )
-            print("Refresh")
-    except Exception as e:
-        print(f"Złe ustawienie: {e}")
-        return
-
 def getsettingsline(line):
     try:
         with open('settings', 'r') as file:
@@ -275,18 +250,18 @@ class App(customtkinter.CTk):
         self.entrylink2 = customtkinter.CTkEntry(self.Button2, placeholder_text="Entry Link")
         self.entrylink2.insert(0, Button2Link)
         self.entrylink2.grid(row=3, column=0, padx=5, pady=5)
-
-        self.buttonstart = customtkinter.CTkButton(self, text="Update", command=self.openRPC)
+        
+        self.buttonstart = customtkinter.CTkButton(self, text="Start", command=self.openRPC)
         self.buttonstart.grid(row=3, column=1, pady=2, padx=(10, 1), sticky="ew", columnspan=3)
 
-        self.buttonstart = customtkinter.CTkButton(self, text="Save", command=self.saveRPC)
-        self.buttonstart.grid(row=3, column=4, pady=2, padx=(1, 10), sticky="ew", columnspan=3)
+        self.buttonsave = customtkinter.CTkButton(self, text="Save", command=self.saveRPC)
+        self.buttonsave.grid(row=3, column=4, pady=2, padx=(1, 10), sticky="ew", columnspan=3)
 
-        self.buttonstart = customtkinter.CTkButton(self, text="Hide", command=self.hide)
-        self.buttonstart.grid(row=4, column=1, pady=2, padx=(10, 1), sticky="ew", columnspan=3)
+        self.buttonhide = customtkinter.CTkButton(self, text="Hide", command=self.hide)
+        self.buttonhide.grid(row=4, column=1, pady=2, padx=(10, 1), sticky="ew", columnspan=3)
 
-        self.buttonstart = customtkinter.CTkButton(self, text="Settings", command=self.open_settings)
-        self.buttonstart.grid(row=4, column=4, pady=2, padx=(1, 10), sticky="ew", columnspan=3)
+        self.buttonsettings = customtkinter.CTkButton(self, text="Settings", command=self.open_settings)
+        self.buttonsettings.grid(row=4, column=4, pady=2, padx=(1, 10), sticky="ew", columnspan=3)
 
         if minimalize == "True":
             self.hide()
@@ -322,6 +297,40 @@ class App(customtkinter.CTk):
             file.write(f"{AppID}\n{Details}\n{State}\n{LargeImageLink}\n{LargeImageDescription}\n{SmallImageLink}\n{SmallImageDescription}\n{PartyShow}\n{PartyNumber}\n{PartySlots}\n{Button1Name}\n{Button1Link}\n{Button2Name}\n{Button2Link}")
             file.close()
         print("Zapisano!")
+    
+    def updateRPC(self):
+        print("Uruchamianie....")
+        self.RPCid = Presence(int(AppID))
+        try: self.RPCid.connect()
+        except Exception as e: 
+            print(f"Złe AppID: {e}")
+            return 
+        timestamp = int(time.time())
+        try:
+            self.RPCid.update(
+            state=State,
+            details=Details,
+            large_image=LargeImageLink,
+            large_text=LargeImageDescription,
+            small_image=SmallImageLink,
+            small_text=SmallImageDescription,
+            start=timestamp,
+            party_size=[int(PartyNumber),int(PartySlots)],
+            buttons=[{"label": Button1Name, "url": Button1Link},{"label": Button2Name, "url": Button2Link}]
+            )
+            print("Refresh")
+        except Exception as e:
+            print(f"Złe ustawienie: {e}")
+        return
+
+    def closeRPC(self):
+        print("Zamykanie RPC")
+        self.RPCid.close()
+
+
+    def selfcloseRPC(self):
+        self.closeRPC()
+        self.buttonstart.configure(text="Start", command=self.openRPC)
 
     
     def openRPC(self):
@@ -350,8 +359,9 @@ class App(customtkinter.CTk):
             file.close()
         print("Zapisano!")
         print("Uruchamianie...")
-        thread = threading.Thread(target=updateRPC())
+        thread = threading.Thread(target=self.updateRPC())
         thread.start
+        self.buttonstart.configure(text="Stop", command=self.selfcloseRPC)
 
     def hide(self):
         self.withdraw()
