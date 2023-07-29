@@ -4,6 +4,7 @@ import pystray
 import PIL.Image
 from pypresence import Presence
 import os
+import time
 import getpass
 from win32com.client import Dispatch
 
@@ -301,6 +302,7 @@ class App(customtkinter.CTk):
     
     def updateRPC(self):
         print("Uruchamianie....")
+        timestamp = time.time()
         self.RPCid = Presence(int(AppID))
         try: self.RPCid.connect()
         except Exception as e: 
@@ -314,6 +316,7 @@ class App(customtkinter.CTk):
             large_text=LargeImageDescription,
             small_image=SmallImageLink,
             small_text=SmallImageDescription,
+            start=timestamp,
             party_size=[int(PartyNumber),int(PartySlots)],
             buttons=[{"label": Button1Name, "url": Button1Link},{"label": Button2Name, "url": Button2Link}]
             )
